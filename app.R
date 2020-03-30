@@ -35,8 +35,26 @@ analyse_minor <- function(minor){
     } else if(any(rowSums(mat_gelb) == 4) | any(rowSums(t(mat_gelb)) == 4) | sum(diag(mat_gelb)) == 4 | sum(diag((mat_gelb))) == 4){
         return(-Inf)
     } else {
-        return(0) # use unterteile in minoren
-        #100 3 in a row 1 mal 2 in a row + space around streaks
+        minor3_ergeb <- sapply(unterteile_in_minoren(minor,3), function(minor3){
+            mat_rot3 <- minor3 == "R"
+            mat_gelb3 <- minor3 == "G"
+            rot3 <- sum(rowSums(mat_rot3) == 3) + sum(rowSums(t(mat_rot3)) == 3) +
+                as.integer(sum(diag(mat_rot3)) == 3) + as.integer(sum(diag(t(mat_rot3))) == 3)
+            gelb3 <- sum(rowSums(mat_gelb3) == 3) + sum(rowSums(t(mat_gelb3)) == 3) +
+                as.integer(sum(diag(mat_gelb3)) == 3) + as.integer(sum(diag(t(mat_gelb3))) == 3)
+            return(rot3 - gelb3)
+        },simplify = TRUE)
+        minor2_ergeb <- sapply(unterteile_in_minoren(minor,2), function(minor2){
+            mat_rot2 <- minor2 == "R"
+            mat_gelb2 <- minor2 == "G"
+            rot2 <- sum(rowSums(mat_rot2) == 2) + sum(rowSums(t(mat_rot2)) == 2) +
+                as.integer(sum(diag(mat_rot2)) == 2) + as.integer(sum(diag(t(mat_rot2))) == 2)
+            gelb2 <- sum(rowSums(mat_gelb2) == 2) + sum(rowSums(t(mat_gelb2)) == 2) +
+                as.integer(sum(diag(mat_gelb2)) == 2) + as.integer(sum(diag(t(mat_gelb2))) == 2)
+            return(rot2 - gelb2)
+        },simplify = TRUE)
+        freiraum_aussen <- ifelse(sum(minor3_ergeb) != 0,sum(c(minor[1,],minor[2,1],minor[3,1],minor[2,4],minor[3,4]) == "E"),0)
+        return(100 * sum(minor3_ergeb) + 2 * freiraum_aussen * sign(sum(minor3_ergeb)) + sum(minor2_ergeb)) 
     }
 }
 
@@ -50,7 +68,7 @@ spielende <- function(mat){
     } else if(minoren_ergebnis == -Inf){
         return("G")
     } else if(all(mat != "E")){
-        return("Unetschieden") 
+        return("Unentschieden") 
     } else {
         return(minoren_ergebnis)
     }
@@ -60,11 +78,47 @@ moegliche_zuege <- function(mat){
     return(c(1:7)[mat[1,] == "E"])
 }
 
+minimax <- function(mat, maximierer, tiefe, alpha, beta){
+    spielende_temp <- spielende(mat)
+    if(spielende_temp %in% c("R","G","Unentschieden") | tiefe == 0){
+        return(list(best_val = spielende_temp,
+                    best_move = "",
+                    alpha,
+                    beta))
+    }
+    best_move <- ""
+    if(maximierer){
+        best_val <- -Inf
+        symbol <- "R"
+    } else {
+        best_val <- Inf
+        symbol <- "G"
+    }
+    for(zug in moegliche_zuege(mat)){
+        new_mat <- ziehen(mat,symbol,zug)[[1]]
+        hypo_val <- minimax(new_mat,!maximierer,tiefe-1,alpha,beta)$best_val
+        if(maximierer & hypo_val > best_val){
+            best_val <- hypo_val
+            best_move <- zug
+            alpha <- max(alpha, best_val)
+        } 
+        if(!maximierer & hypo_val < best_val){
+            best_val <- hypo_val
+            best_move <- zug
+            beta <- min(beta, best_val)
+        }
+        if(alpha > beta){
+            break
+        }
+    }
+    return(list(best_val = best_val,
+                best_move = best_move,
+                alpha,
+                beta))
+}
 
-
-
-
-
+# alpha ca -2000 und beta 2000? maybe trial and error
+# "R">2 problem
 
 
 
