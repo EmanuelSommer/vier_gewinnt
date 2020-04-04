@@ -5,6 +5,7 @@ library(tidyverse)
 
 start_matrix <- matrix(rep("E",7*6),nrow = 6)
 
+# implementiert einen Zug im Spiel
 ziehen <- function(mat,farbe,spalte){
     if(mat[1,spalte] != "E"){
         return(list(mat,"Unerlaubter Zug"))
@@ -15,6 +16,7 @@ ziehen <- function(mat,farbe,spalte){
     }
 }
 
+# helper function um eine Matrix in Minoren aufzuteilen und diese in einer Liste zu speichern
 unterteile_in_minoren <- function(mat, dimension = 4){
     # nur fuer 4 3 und 2 dimensionen
     dim_mat <- dim(mat)
@@ -27,6 +29,7 @@ unterteile_in_minoren <- function(mat, dimension = 4){
     return(list4) 
 }
 
+# evaluiert einen 4 kreuz 4 Minor, wird dann in spielende() benutzt
 analyse_minor <- function(minor,spieler){
     mat_rot <- minor == "R"
     mat_gelb <- minor == "G"
@@ -44,6 +47,7 @@ analyse_minor <- function(minor,spieler){
             sum(rowSums(t(mat_gelb)) == 3 & rowSums(t(mat_leer)) == 1) +
             as.integer(sum(diag(mat_gelb)) == 3 & sum(diag(mat_leer)) == 1) +
             as.integer(sum(diag(mat_gelb[,4:1])) == 3 & sum(diag(mat_leer[,4:1])) == 1)
+        # initiale Strategie hat folgende Konstrukte benutzt (nicht sehr erfolgreich)
         # minor3_ergeb <- sapply(unterteile_in_minoren(minor,3), function(minor3){
         #     mat_rot3 <- minor3 == "R"
         #     mat_gelb3 <- minor3 == "G"
@@ -63,18 +67,23 @@ analyse_minor <- function(minor,spieler){
         #     return(rot2 - gelb2)
         # },simplify = TRUE)
         # freiraum_aussen <- ifelse(sum(minor3_ergeb) != 0,sum(c(minor[1,],minor[2,1],minor[3,1],minor[2,4],minor[3,4]) == "E"),0)
+        #
+        # Strategie:
+        # Gefährdungen ausschalten wichtiger als selbst welche aufzubauen:
         if(spieler){
-            return(-100 * gelb_gefaehrlich + 10 * rot_gefaehrlich)
+            return(-200 * gelb_gefaehrlich + 10 * rot_gefaehrlich)
         } else {
-            return(-100 * rot_gefaehrlich + 10 * gelb_gefaehrlich)
+            return(-200 * rot_gefaehrlich + 10 * gelb_gefaehrlich)
         }
     }
 }
 
+# evaluiert die ganze Matrix
 spielende <- function(mat,spieler){
     minoren_ergebnisse <- sapply(unterteile_in_minoren(mat,4) , function(minor){
         analyse_minor(minor,spieler)
     },simplify = TRUE)
+    # nachträgliche marginale gewichtung der minoren ergebnisse (gefährdungen auf Minoren weiter unten sind relevanter)
     minoren_ergebnis <- sum(minoren_ergebnisse*c(rep(c(0.8,1,1.2),each = 4)))
     if(minoren_ergebnis == Inf){
         return("R")
@@ -87,10 +96,12 @@ spielende <- function(mat,spieler){
     }
 }
 
+#kleine helper function um mögliche Züge zu bestimmen
 moegliche_zuege <- function(mat){
     return(c(1:7)[mat[1,] == "E"])
 }
 
+# Implementierung des Algorithmus
 minimax <- function(mat, spieler, tiefe, alpha, beta){
     spielende_temp <- spielende(mat,spieler)
     if(spielende_temp %in% c("R","G","Unentschieden") | tiefe == 0){
@@ -140,6 +151,7 @@ minimax <- function(mat, spieler, tiefe, alpha, beta){
                 beta))
 }
 
+# Plotten der Matrix
 plot_grid <- function(mat){
     colnames(mat) <- as.character(1:7)
     mat %>%
@@ -163,14 +175,21 @@ plot_grid <- function(mat){
 
 
 
-
-
+#####################################################################################################################
+#####################################################################################################################
+#
+#
+#                           Shiny Teil
+#
+#
+#####################################################################################################################
+#####################################################################################################################
 
 library(shiny)
 library(shinydashboard)
 library(shinydashboardPlus)
 
-# Define UI for application that draws a histogram
+
 ui <- dashboardPage(
     dashboardHeader(title = "Vier gewinnt",
                     dropdownMenu(
@@ -212,7 +231,8 @@ ui <- dashboardPage(
 
 )
 
-# Define server logic required to draw a histogram
+#####################################################################################################################
+
 server <- function(input, output) {
     values <- reactiveValues(mat = start_matrix,text = "Weiter",over = FALSE)
     observeEvent(input$reset,{
