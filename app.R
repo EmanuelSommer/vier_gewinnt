@@ -31,19 +31,19 @@ analyse_minor <- function(minor,spieler){
     mat_rot <- minor == "R"
     mat_gelb <- minor == "G"
     mat_leer <- minor == "E"
-    if(any(rowSums(mat_rot) == 4) | any(rowSums(t(mat_rot)) == 4) | sum(diag(mat_rot)) == 4 | sum(diag((mat_rot))) == 4){
+    if(any(rowSums(mat_rot) == 4) | any(rowSums(t(mat_rot)) == 4) | sum(diag(mat_rot)) == 4 | sum(diag(mat_rot[,4:1])) == 4){
         return(Inf)
-    } else if(any(rowSums(mat_gelb) == 4) | any(rowSums(t(mat_gelb)) == 4) | sum(diag(mat_gelb)) == 4 | sum(diag((mat_gelb))) == 4){
+    } else if(any(rowSums(mat_gelb) == 4) | any(rowSums(t(mat_gelb)) == 4) | sum(diag(mat_gelb)) == 4 | sum(diag(mat_gelb[,4:1])) == 4){
         return(-Inf)
     } else {
         rot_gefaehrlich <- sum(rowSums(mat_rot) == 3 & rowSums(mat_leer) == 1) +
             sum(rowSums(t(mat_rot)) == 3 & rowSums(t(mat_leer)) == 1) +
             as.integer(sum(diag(mat_rot)) == 3 & sum(diag(mat_leer)) == 1) +
-            as.integer(sum(diag(t(mat_rot))) == 3 & sum(diag(t(mat_leer))) == 1)
+            as.integer(sum(diag(mat_rot[,4:1])) == 3 & sum(diag(mat_leer[,4:1])) == 1)
         gelb_gefaehrlich <- sum(rowSums(mat_gelb) == 3 & rowSums(mat_leer) == 1) +
             sum(rowSums(t(mat_gelb)) == 3 & rowSums(t(mat_leer)) == 1) +
             as.integer(sum(diag(mat_gelb)) == 3 & sum(diag(mat_leer)) == 1) +
-            as.integer(sum(diag(t(mat_gelb))) == 3 & sum(diag(t(mat_leer))) == 1)
+            as.integer(sum(diag(mat_gelb[,4:1])) == 3 & sum(diag(mat_leer[,4:1])) == 1)
         # minor3_ergeb <- sapply(unterteile_in_minoren(minor,3), function(minor3){
         #     mat_rot3 <- minor3 == "R"
         #     mat_gelb3 <- minor3 == "G"
