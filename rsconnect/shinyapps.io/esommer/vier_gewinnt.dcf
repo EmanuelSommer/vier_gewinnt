@@ -1,0 +1,12 @@
+name: vier_gewinnt
+title: vier_gewinnt
+username:
+account: esommer
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2056093
+bundleId: 2968166
+url: https://esommer.shinyapps.io/vier_gewinnt/
+when: 1586002762.10294
+asMultiple: FALSE
+asStatic: FALSE

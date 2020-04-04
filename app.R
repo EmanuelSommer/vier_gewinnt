@@ -148,7 +148,7 @@ plot_grid <- function(mat){
         pivot_longer(as.character(1:7)) %>%
         mutate(n_col = as.integer(name)) %>%
         ggplot(aes(x = n_col,y = n_row,fill = value)) +
-            geom_point(shape = 21,size = 25) +
+            geom_point(shape = 21,size = 22) +
             scale_fill_manual(values = c(E = "white",R = "red",G = "yellow"),
                               guide = NULL)+
             labs(x = "",y = "")+
@@ -177,12 +177,12 @@ ui <- dashboardPage(
                         type = "notifications",
                         icon = icon("link"),
                         headerText = "Links",
-                        notificationItem("Github repo", icon = icon("github"),
+                        notificationItem("Mein Github", icon = icon("github"),
                                          href = "https://github.com/EmanuelSommer/")
                     )
     ),
     dashboardSidebar(
-        sliderInput("tiefe",label = "Einstellung der Schwierigkeit:",min = 1, max = 4,value = 2),
+        sliderInput("tiefe",label = "Einstellung der Schwierigkeit:",min = 1, max = 5,value = 2),
         tags$br()
     ),
     dashboardBody(
@@ -191,11 +191,17 @@ ui <- dashboardPage(
                    infoBoxOutput("status",width = NULL)
                    ),
             column(width = 6,
-                   actionButton("reset",label = "Neues Spiel",icon = icon("redo"))
+                   tags$br(),
+                   actionButton("reset",label = "Neues Spiel",icon = icon("redo")),
+                   tags$br()
             ),
             column(width = 12,
-                   box(width = NULL,
-                       plotOutput("spielfeld",click = "plot_click")))
+                   box(width = NULL,title = "Spielfeld",
+                       plotOutput("spielfeld",click = "plot_click"))),
+            column(width = 12,
+                   infoBox(title = "Tipp",width = 12,
+                           subtitle = "Auf mobilen Geräten ist Querformat meist angenehmer zum Spielen.",
+                           icon = icon("info"),color = "blue"))
         )
     ),
     skin = "black"
