@@ -5,8 +5,8 @@ account: esommer
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2056093
-bundleId: 2969227
+bundleId: 2969574
 url: https://esommer.shinyapps.io/vier_gewinnt/
-when: 1586025153.4248
+when: 1586033340.68827
 asMultiple: FALSE
 asStatic: FALSE

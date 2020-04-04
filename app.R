@@ -71,20 +71,40 @@ analyse_minor <- function(minor,spieler){
         # Strategie:
         # Gefährdungen ausschalten wichtiger als selbst welche aufzubauen:
         if(spieler){
-            return(-200 * gelb_gefaehrlich + 10 * rot_gefaehrlich)
+            return(-200 * gelb_gefaehrlich^2 + 10 * rot_gefaehrlich)
         } else {
-            return(-200 * rot_gefaehrlich + 10 * gelb_gefaehrlich)
+            return(-200 * rot_gefaehrlich^2 + 10 * gelb_gefaehrlich)
         }
     }
 }
 
 # evaluiert die ganze Matrix
 spielende <- function(mat,spieler){
+    # analyse 4kreuz4 Minoren
     minoren_ergebnisse <- sapply(unterteile_in_minoren(mat,4) , function(minor){
         analyse_minor(minor,spieler)
     },simplify = TRUE)
+    # analyse 5kreuz5 minoren für das verhindern von "Fallen"
+    minoren55_ergebnisse <- sapply(unterteile_in_minoren(mat,5) , function(minor){
+        mat_rot <- minor == "R"
+        mat_gelb <- minor == "G"
+        mat_leer <- minor == "E"
+        rot_gefaehrlich <- sum(rowSums(mat_rot) == 3 & rowSums(mat_leer) == 2) +
+            sum(rowSums(t(mat_rot)) == 3 & rowSums(t(mat_leer)) == 2) +
+            as.integer(sum(diag(mat_rot)) == 3 & sum(diag(mat_leer)) == 2) +
+            as.integer(sum(diag(mat_rot[,5:1])) == 3 & sum(diag(mat_leer[,5:1])) == 2)
+        gelb_gefaehrlich <- sum(rowSums(mat_gelb) == 3 & rowSums(mat_leer) == 2) +
+            sum(rowSums(t(mat_gelb)) == 3 & rowSums(t(mat_leer)) == 2) +
+            as.integer(sum(diag(mat_gelb)) == 3 & sum(diag(mat_leer)) == 2) +
+            as.integer(sum(diag(mat_gelb[,5:1])) == 3 & sum(diag(mat_leer[,5:1])) == 2)
+        if(spieler){
+            return(-300 * gelb_gefaehrlich + 5 * rot_gefaehrlich)
+        } else {
+            return(-300 * rot_gefaehrlich + 5 * gelb_gefaehrlich)
+        }
+    },simplify = TRUE)
     # nachträgliche marginale gewichtung der minoren ergebnisse (gefährdungen auf Minoren weiter unten sind relevanter)
-    minoren_ergebnis <- sum(minoren_ergebnisse*c(rep(c(0.8,1,1.2),each = 4)))
+    minoren_ergebnis <- sum(minoren_ergebnisse*c(rep(c(0.8,1,1.2),each = 4))) + sum(minoren55_ergebnisse*c(rep(c(0.8,1,1.2),each = 2)))
     if(minoren_ergebnis == Inf){
         return("R")
     } else if(minoren_ergebnis == -Inf){
@@ -118,7 +138,7 @@ minimax <- function(mat, spieler, tiefe, alpha, beta){
         best_val <- Inf
         symbol <- "G"
     }
-    for(zug in moegliche_zuege(mat)){
+    for(zug in sample(moegliche_zuege(mat))){
         new_mat <- ziehen(mat,symbol,zug)[[1]]
         hypo_val <- minimax(new_mat,!spieler,tiefe-1,alpha,beta)$best_val
         if(is.character(hypo_val) & hypo_val == "Unentschieden"){
@@ -250,7 +270,7 @@ server <- function(input, output) {
                 values$over <- TRUE
                 values$text <- spielende_temp
             } else {
-                minimax_res <- minimax(values$mat,FALSE,input$tiefe,-2000,2000)
+                minimax_res <- minimax(values$mat,FALSE,input$tiefe,-20000,20000)
                 if(!is.numeric(minimax_res$best_move)){
                     moeglich_temp <- moegliche_zuege(values$mat)
                     if(length(moeglich_temp) == 0){
