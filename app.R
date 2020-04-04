@@ -75,7 +75,7 @@ spielende <- function(mat,spieler){
     minoren_ergebnisse <- sapply(unterteile_in_minoren(mat,4) , function(minor){
         analyse_minor(minor,spieler)
     },simplify = TRUE)
-    minoren_ergebnis <- sum(minoren_ergebnisse)
+    minoren_ergebnis <- sum(minoren_ergebnisse*c(rep(c(0.8,1,1.2),each = 4)))
     if(minoren_ergebnis == Inf){
         return("R")
     } else if(minoren_ergebnis == -Inf){
@@ -182,7 +182,7 @@ ui <- dashboardPage(
                     )
     ),
     dashboardSidebar(
-        sliderInput("tiefe",label = "Einstellung der Schwierigkeit:",min = 1, max = 5,value = 2),
+        sliderInput("tiefe",label = "Einstellung der Schwierigkeit:",min = 1, max = 5,value = 3),
         tags$br()
     ),
     dashboardBody(
@@ -199,9 +199,13 @@ ui <- dashboardPage(
                    box(width = NULL,title = "Spielfeld",
                        plotOutput("spielfeld",click = "plot_click"))),
             column(width = 12,
+                   infoBox(title = "Herausforderung",width = 12,
+                           subtitle = "Für wen der Gegner zu leicht zu besiegen ist, der kann sich einer deutlich schwereren Herausforderung stellen: Erreiche ein Unentschieden bei möglichst hohem Schwierigkeitsgrad.",
+                           icon = icon("medal"),color = "blue"),
                    infoBox(title = "Tipp",width = 12,
                            subtitle = "Auf mobilen Geräten ist Querformat meist angenehmer zum Spielen.",
-                           icon = icon("info"),color = "blue"))
+                           icon = icon("info"),color = "blue")
+                   )
         )
     ),
     skin = "black"
@@ -221,9 +225,10 @@ server <- function(input, output) {
         x_click <- round(input$plot_click$x)
         if(!values$over & x_click %in% moegliche_zuege(values$mat)){
             values$mat <- ziehen(values$mat,"R",x_click)[[1]]
-            if(is.character(spielende(values$mat,TRUE))){
+            spielende_temp <- spielende(values$mat,TRUE)
+            if(is.character(spielende_temp)){
                 values$over <- TRUE
-                values$text <- spielende(values$mat,TRUE)
+                values$text <- spielende_temp
             } else {
                 minimax_res <- minimax(values$mat,FALSE,input$tiefe,-2000,2000)
                 if(!is.numeric(minimax_res$best_move)){
@@ -238,9 +243,10 @@ server <- function(input, output) {
                     next_move <- minimax_res$best_move
                 }
                 values$mat <- ziehen(values$mat,"G",next_move)[[1]]
-                if(is.character(spielende(values$mat,TRUE))){
+                spielende_temp <- spielende(values$mat,TRUE)
+                if(is.character(spielende_temp)){
                     values$over <- TRUE
-                    values$text <- spielende(values$mat,TRUE)
+                    values$text <- spielende_temp
                 }
             }
         }
