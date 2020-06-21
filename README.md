@@ -8,9 +8,10 @@ Ergebnis: Ein nicht sehr schlauer, aber auch nicht sehr dummer AI-Gegner
 für das Spiel Vier Gewinnt. Dazu eine Shiny-Web-Application zum
 Spielen:)
 
-## Link zum Spiel
+## Link zum “schöneren” Spiel
 
-[Hier klicken](https://esommer.shinyapps.io/vier_gewinnt/)
+Gleicher Algorithmus und mit Link zum richtigen Spielen: [Hier
+klicken](https://github.com/EmanuelSommer/vier_gewinnt_pretty#vier-gewinnt)
 
 ## Teaser
 
